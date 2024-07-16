@@ -10,18 +10,11 @@ import json
 
 from aiokafka import AIOKafkaProducer
 
-# from app.kafka.producer import get_kafka_producer
+from app.kafka.producer import get_kafka_producer
 
 login_router = APIRouter(tags=["login"], prefix="/auth")
 
 
-async def get_kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers='broker:19092')
-    await producer.start()
-    try:
-        yield producer
-    finally:
-        await producer.stop()
 
 
 @login_router.post('/token')
@@ -44,9 +37,4 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm,Depends()], sessi
 
     return {"access_token": 2321, "token_type": "bearer"}
 
-@login_router.post('/kafka')
-async def kafka_produce(data,producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)] ):
-    data_json = json.dumps(data).encode('utf-8')
-    print("DATA JSON", data_json)
-    await producer.send_and_wait('jwt', data_json)
-    return {"Data":"passed"}
+

@@ -8,8 +8,6 @@ class Product(SQLModel,table=True):
     name: str
     description :str
     price:int |None= Field(default=None)
-    SKU:str|None= Field(default=None)
-    qty:int|None = Field(default=None)
 
 
 class ProductCreate(BaseModel):
@@ -20,6 +18,5 @@ class ProductUpdate(BaseModel):
     name:Optional[str] = None
     description : Optional[str] = None
     price:Optional[int]= None
-    SKU:Optional[str]= None
-    qty : Optional[int]= None
+
     

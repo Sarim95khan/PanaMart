@@ -3,23 +3,48 @@ from contextlib import asynccontextmanager
 from starlette.middleware.cors import CORSMiddleware
 from typing import AsyncGenerator, Annotated, Optional
 from sqlmodel import SQLModel, Field
+import asyncio
+# from app.kafka.consumer import consume_messages
+
 
 
 
 from app.db import create_db_and_tables
 from app.routes.product import product_router
-from aiokafka import AIOKafkaProducer
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
-class Todo(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    content: str = Field(index=True)
+
+async def consume_messages(topic, bootstrap_servers):
+    # Create a consumer instance.
+    consumer = AIOKafkaConsumer(
+        topic,
+        bootstrap_servers=bootstrap_servers,
+        group_id="product-group",
+        auto_offset_reset='earliest'
+    )
+
+    # Start the consumer.
+    await consumer.start()
+    try:
+        # Continuously listen for messages.
+        async for message in consumer:
+            print(f"Received message: {message.value.decode()} on topic {message.topic}")
+            # Here you can add code to process each message.
+            # Example: parse the message, store it in a database, etc.
+    finally:
+        # Ensure to close the consumer when done.
+        await consumer.stop()
+
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
-    print("Creating tables..")
-    create_db_and_tables()
+    # print("Creating tables..")
+    # create_db_and_tables()
+    print('Life Span')
+    task = asyncio.create_task(consume_messages('create-product', 'broker:19092'))
     yield
+
 
 app= FastAPI(
     lifespan=lifespan,
@@ -31,6 +56,8 @@ app= FastAPI(
         ]
 )
 
+
+
 app.include_router(product_router)
 
 app.add_middleware(
@@ -40,19 +67,6 @@ app.add_middleware(
         allow_headers=["*"],
     )
 
-async def get_kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers='broker:19092')
-    await producer.start()
-    try:
-        yield producer
-    finally:
-        await producer.stop()
-
-@app.post("/todos/", response_model=Todo)
-async def create_todo(todo: Todo, producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
-    
-    await producer.send_and_wait('sarim',b'OK Sarim')
-    return todo
 
 @app.get('/')
 def index():
