@@ -6,7 +6,7 @@ from sqlmodel import SQLModel, Field
 import asyncio
 
 from app.kafka.consumer import consume_messages
-
+# from app.kafka.consumers.create_inventory import consume_message
 
 
 
@@ -20,9 +20,9 @@ from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 @asynccontextmanager
 async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
     # print("Creating tables..")
-    create_db_and_tables()
+    # create_db_and_tables()
     print('Life Span')
-    task = asyncio.create_task(consume_messages('create-product', 'broker:19092'))
+    task = asyncio.create_task(consume_messages('product-passed', 'broker:19092'))
     yield
 
 

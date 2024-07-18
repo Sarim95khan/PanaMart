@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
 from sqlmodel import select
+
 import json
 from aiokafka import AIOKafkaProducer
 
@@ -20,11 +21,21 @@ def get_all_stock(session:Annotated[Session,Depends(get_session)]):
 
 
 @inventory_router.post('/create-inventory')
-def create_inventory(inventory:InventoryCreate, session:Annotated[Session, Depends(get_session)]):
+async def create_inventory(inventory:InventoryCreate, session:Annotated[Session, Depends(get_session)], producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     db_inventory = Inventory.model_validate(inventory)
-    session.add(db_inventory)
-    session.commit()
-    session.refresh(db_inventory)
+    
+    data = {
+        "product_id":db_inventory.product_id,
+        "stock":db_inventory.stock
+    }
+
+    data_json = json.dumps(data).encode('utf-8')
+    print("JSON data in add-stock topic producer", data_json)
+    await producer.send_and_wait('add-stock',data_json)
+
+    # session.add(db_inventory)
+    # session.commit()
+    # session.refresh(db_inventory)
     return db_inventory
 
 @inventory_router.patch('/update-inventory/{inventory_id}')

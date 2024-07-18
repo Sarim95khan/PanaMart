@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from typing import AsyncGenerator, Annotated, Optional
 from sqlmodel import SQLModel, Field
 import asyncio
-# from app.kafka.consumer import consume_messages
+# from app.kafka.consumers.consumer import consume_messages
 
 
 
@@ -12,37 +12,39 @@ import asyncio
 from app.db import create_db_and_tables
 from app.routes.product import product_router
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
+# from product.app.kafka.consumers.consumer import consume_messages 
+from app.kafka.consumers.inventory_consumer import inventory_consumer
 
 
-async def consume_messages(topic, bootstrap_servers):
-    # Create a consumer instance.
-    consumer = AIOKafkaConsumer(
-        topic,
-        bootstrap_servers=bootstrap_servers,
-        group_id="product-group",
-        auto_offset_reset='earliest'
-    )
+# async def consume_messages(topic, bootstrap_servers):
+#     # Create a consumer instance.
+#     consumer = AIOKafkaConsumer(
+#         topic,
+#         bootstrap_servers=bootstrap_servers,
+#         group_id="product-group",
+#         auto_offset_reset='earliest'
+#     )
 
-    # Start the consumer.
-    await consumer.start()
-    try:
-        # Continuously listen for messages.
-        async for message in consumer:
-            print(f"Received message: {message.value.decode()} on topic {message.topic}")
-            # Here you can add code to process each message.
-            # Example: parse the message, store it in a database, etc.
-    finally:
-        # Ensure to close the consumer when done.
-        await consumer.stop()
+#     # Start the consumer.
+#     await consumer.start()
+#     try:
+#         # Continuously listen for messages.
+#         async for message in consumer:
+#             print(f"Received message: {message.value.decode()} on topic {message.topic}")
+#             # Here you can add code to process each message.
+#             # Example: parse the message, store it in a database, etc.
+#     finally:
+#         # Ensure to close the consumer when done.
+#         await consumer.stop()
 
 
-
+    
 @asynccontextmanager
 async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
     # print("Creating tables..")
     # create_db_and_tables()
     print('Life Span')
-    task = asyncio.create_task(consume_messages('create-product', 'broker:19092'))
+    task = asyncio.create_task(inventory_consumer('add-stock', 'broker:19092'))
     yield
 
 
