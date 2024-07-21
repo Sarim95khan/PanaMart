@@ -51,6 +51,18 @@ services:
       - broker
       - inventory_db
 
+  payment-service:
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    ports:
+      - '8004:8000'
+    volumes:
+      - ./payment:/code
+    depends_on:
+      - broker
+      - payment_db
+
   user_db:
     image: postgres:latest # Use the official PostgreSQL image
     restart: always
@@ -103,6 +115,19 @@ services:
     volumes:
       - inventory_db:/var/lib/postgresql/data
 
+  payment_db:
+    image: postgres:latest # Use the official PostgreSQL image
+    restart: always
+    container_name: payment_db
+    environment:
+      - POSTGRES_USER=payment
+      - POSTGRES_PASSWORD=payment
+      - POSTGRES_DB=mydatabase
+    ports:
+      - '5437:5432'
+    volumes:
+      - payment_db:/var/lib/postgresql/data
+
   broker:
     image: apache/kafka:3.7.0
     hostname: broker
@@ -145,6 +170,8 @@ volumes:
   order_db:
     driver: local
   inventory_db:
+    driver: local
+  payment_db:
     driver: local
 
 networks:

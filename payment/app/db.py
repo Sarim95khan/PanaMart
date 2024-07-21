@@ -1,7 +1,12 @@
 from sqlmodel import Session,create_engine,SQLModel, Field
 from app import settings
-from app.models import Product
+from typing import Optional
 
+
+class Inventory(SQLModel,table=True):
+    id : int|None = Field(default=None, primary_key=True)
+    product_id : int
+    stock : Optional[int] =None
 
 connection_string = str(settings.DATABASE_URL).replace(
     "postgresql", "postgresql+psycopg"

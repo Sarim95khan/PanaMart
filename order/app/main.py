@@ -10,7 +10,7 @@ import asyncio
 from app.db import create_db_and_tables
 from app.routes.order import order_router
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
-
+from app.kafka.order_verification_consumer import order_verification_consumer
 
 
 async def consume_messages(topic, bootstrap_servers):
@@ -39,6 +39,7 @@ async def consume_messages(topic, bootstrap_servers):
 async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
     print("Creating tables..")
     task = asyncio.create_task(consume_messages('create-product', 'broker:19092'))
+    task_2 = asyncio.create_task(order_verification_consumer('order-verified', 'broker:19092'))
     create_db_and_tables()
     yield
 

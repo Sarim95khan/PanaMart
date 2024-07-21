@@ -10,6 +10,7 @@ class Order(SQLModel, table=True):
     product_id :int
     quantity : int
 
+
     
 class OrderCreate(BaseModel):
     user_id : int

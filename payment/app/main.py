@@ -5,15 +5,13 @@ from typing import AsyncGenerator, Annotated, Optional
 from sqlmodel import SQLModel, Field
 import asyncio
 
-from app.kafka.consumer import consume_messages
 # from app.kafka.consumers.create_inventory import consume_message
 
 
 
 from app.db import create_db_and_tables
-from app.routes.inventory import inventory_router
+from app.routes.payment import payment_router
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
-from app.kafka.order_consumer import order_consumer
 
 
 
@@ -21,10 +19,9 @@ from app.kafka.order_consumer import order_consumer
 @asynccontextmanager
 async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
     print("Creating tables..")
-    create_db_and_tables()
+    # create_db_and_tables()
     print('Life Span')
-    task = asyncio.create_task(consume_messages('product-passed', 'broker:19092'))
-    task_create_order = asyncio.create_task(order_consumer('create-order', 'broker:19092'))
+    # task = asyncio.create_task(consume_messages('product-passed', 'broker:19092'))
     yield
 
 
@@ -32,7 +29,7 @@ app= FastAPI(
     lifespan=lifespan,
        servers=[
         {
-            "url": "http://127.0.0.1:8003", # ADD NGROK URL Here Before Creating GPT Action
+            "url": "http://127.0.0.1:8004", # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server"
         }
         ]
@@ -40,10 +37,11 @@ app= FastAPI(
 
 
 
-app.include_router(inventory_router)
+app.include_router(payment_router)
 
 app.add_middleware(
         CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -52,7 +50,7 @@ app.add_middleware(
 
 @app.get('/')
 def index():
-    return {'message': 'Hello Product'}
+    return {'message': 'Hello Payment'}
 
 
 

@@ -22,7 +22,8 @@ async def create_order(order:OrderCreate, session:Annotated[Session,Depends(get_
     db_order = Order.model_validate(order) 
     kafka_order = {
         "user_id": order.user_id,
-        "product_id": order.product_id
+        "product_id": order.product_id,
+        "quantity": order.quantity
     }
     json_data = json.dumps(kafka_order).encode('utf-8')
     print("Encoded Kafka ORDER", json_data)

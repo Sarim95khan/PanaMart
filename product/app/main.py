@@ -41,13 +41,13 @@ from app.kafka.consumers.inventory_consumer import inventory_consumer
     
 @asynccontextmanager
 async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
-    # print("Creating tables..")
-    # create_db_and_tables()
+    print("Creating tables..")
+    create_db_and_tables()
     print('Life Span')
     task = asyncio.create_task(inventory_consumer('add-stock', 'broker:19092'))
     yield
 
-
+    
 app= FastAPI(
     lifespan=lifespan,
        servers=[
